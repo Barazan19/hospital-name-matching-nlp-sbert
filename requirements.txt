@@ -1,0 +1,10 @@
+pandas
+numpy
+scikit-learn
+rapidfuzz
+sentence-transformers>=3.0
+torch
+datasets
+accelerate>=1.1.0
+openpyxl
+seaborn

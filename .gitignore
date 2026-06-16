@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# fine-tuned model weights are large binaries; rebuild via src/finetune_sbert.py
+models/*
+!models/.gitkeep
+models/_trainer_ckpts/
+
+.venv/
+venv/
+*.egg-info/
+
+# training/eval progress logs (tqdm spam) -- keep the JSON/CSV results, not these
+*_log.txt

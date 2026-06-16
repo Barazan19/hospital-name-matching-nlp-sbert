@@ -1,0 +1,178 @@
+{
+  "test_original": {
+    "standalone_accuracy": {
+      "cosine_only": 0.4951,
+      "fuzzy_only": 0.4806,
+      "sbert_only": 0.5291
+    },
+    "ensemble_with_sbert": [
+      {
+        "threshold": 0.5,
+        "coverage": 0.7038834951456311,
+        "accuracy_on_resolved": 0.6344827586206897
+      },
+      {
+        "threshold": 0.6,
+        "coverage": 0.5922330097087378,
+        "accuracy_on_resolved": 0.7131147540983607
+      },
+      {
+        "threshold": 0.7,
+        "coverage": 0.3640776699029126,
+        "accuracy_on_resolved": 0.7466666666666667
+      }
+    ],
+    "ensemble_without_sbert": [
+      {
+        "threshold": 0.5,
+        "coverage": 0.6893203883495146,
+        "accuracy_on_resolved": 0.6408450704225352
+      },
+      {
+        "threshold": 0.6,
+        "coverage": 0.5339805825242718,
+        "accuracy_on_resolved": 0.7181818181818181
+      },
+      {
+        "threshold": 0.7,
+        "coverage": 0.3446601941747573,
+        "accuracy_on_resolved": 0.7464788732394366
+      }
+    ],
+    "n_rows_sbert_uniquely_correct": 3,
+    "sbert_unique_wins": [
+      {
+        "query": "RSSTELISABETH SEMARANG",
+        "true_answer": "RS ST ELISABETH SEMARANG",
+        "sbert_pred": "RS ST ELISABETH SEMARANG",
+        "cosine_pred": "SILOAM HOSPITAL SEMARANG",
+        "fuzzy_pred": "RS ELISABETH SEMARANG",
+        "char_similarity_query_vs_answer": 78.3
+      },
+      {
+        "query": "SUNWAY MEDICAL CENTRE KUALA LUMPUR",
+        "true_answer": "SUNWAY MEDICAL CENTRE SDN BHD MALAYSIA",
+        "sbert_pred": "SUNWAY MEDICAL CENTRE SDN BHD MALAYSIA",
+        "cosine_pred": "IHEAL MEDICAL CENTRE KUALA LUMPUR",
+        "fuzzy_pred": "PARKCITY MEDICAL CENTRE KUALA LUMPUR",
+        "char_similarity_query_vs_answer": 69.4
+      },
+      {
+        "query": "BANDUNG ADVENTIST HOSPITAL",
+        "true_answer": "RS ADVENT BANDUNG",
+        "sbert_pred": "RS ADVENT BANDUNG",
+        "cosine_pred": "PENANG ADVENTIST HOSPITAL",
+        "fuzzy_pred": "PENANG ADVENTIST HOSPITAL",
+        "char_similarity_query_vs_answer": 74.4
+      }
+    ]
+  },
+  "test_new": {
+    "standalone_accuracy": {
+      "cosine_only": 0.5419,
+      "fuzzy_only": 0.5032,
+      "sbert_only": 0.5871
+    },
+    "ensemble_with_sbert": [
+      {
+        "threshold": 0.5,
+        "coverage": 0.7354838709677419,
+        "accuracy_on_resolved": 0.6666666666666666
+      },
+      {
+        "threshold": 0.6,
+        "coverage": 0.6774193548387096,
+        "accuracy_on_resolved": 0.6857142857142857
+      },
+      {
+        "threshold": 0.7,
+        "coverage": 0.5225806451612903,
+        "accuracy_on_resolved": 0.7037037037037037
+      }
+    ],
+    "ensemble_without_sbert": [
+      {
+        "threshold": 0.5,
+        "coverage": 0.7354838709677419,
+        "accuracy_on_resolved": 0.6666666666666666
+      },
+      {
+        "threshold": 0.6,
+        "coverage": 0.6645161290322581,
+        "accuracy_on_resolved": 0.6796116504854369
+      },
+      {
+        "threshold": 0.7,
+        "coverage": 0.5032258064516129,
+        "accuracy_on_resolved": 0.7051282051282052
+      }
+    ],
+    "n_rows_sbert_uniquely_correct": 8,
+    "sbert_unique_wins": [
+      {
+        "query": "DEMAM SAMPAI 378 PEMBERIAN OBAT INJEKSI SAMPAI PULANG HASIL LAB TROMBOSIT TGL 100 HASIL LAB IGG TGL REACTIVE HASIL LAB TROMBOSIT TGL TROMBOSIT 108 PEMBERIAN OBAT INJEKSI SAMPAI TANGGL SAMPAI PULANG RS SANTO BORROMEUS BANDUNG",
+        "true_answer": "RS ST BORROMEUS",
+        "sbert_pred": "RS ST BORROMEUS",
+        "cosine_pred": "RS TIARA BEKASI",
+        "fuzzy_pred": "BIO TEST LABORATORIUM KLINIK",
+        "char_similarity_query_vs_answer": 12.6
+      },
+      {
+        "query": "GYNAE ONCO PARTNERS",
+        "true_answer": "GYNAE ONCOLOGY CENTRE PTE LTD SINGAPORE",
+        "sbert_pred": "GYNAE ONCOLOGY CENTRE PTE LTD SINGAPORE",
+        "cosine_pred": "ONCOCARE CANCER CENTRE SINGAPORE",
+        "fuzzy_pred": "CARE COLLAB PARTNERS",
+        "char_similarity_query_vs_answer": 51.7
+      },
+      {
+        "query": "GYNAE ONCO PARTNERS",
+        "true_answer": "GYNAE ONCOLOGY CENTRE PTE LTD SINGAPORE",
+        "sbert_pred": "GYNAE ONCOLOGY CENTRE PTE LTD SINGAPORE",
+        "cosine_pred": "ONCOCARE CANCER CENTRE SINGAPORE",
+        "fuzzy_pred": "CARE COLLAB PARTNERS",
+        "char_similarity_query_vs_answer": 51.7
+      },
+      {
+        "query": "K020 KLINIK UTAMA PALAPA DENTIS",
+        "true_answer": "RS PALAPA DENTIST",
+        "sbert_pred": "RS PALAPA DENTIST",
+        "cosine_pred": "KLINIK UTAMA",
+        "fuzzy_pred": "KLINIK PRATAMA ADVENT",
+        "char_similarity_query_vs_answer": 58.3
+      },
+      {
+        "query": "HOSPITAL PAKAR DAMANSARA",
+        "true_answer": "DAMANSARA SPESIALIST HOSPITAL MALAYSIA",
+        "sbert_pred": "DAMANSARA SPESIALIST HOSPITAL MALAYSIA",
+        "cosine_pred": "CMH HOSPITAL PAKAR CMH",
+        "fuzzy_pred": "KPJ DAMANSARA SPECIALIST HOSPITAL",
+        "char_similarity_query_vs_answer": 67.7
+      },
+      {
+        "query": "KLINIK UTAMA MATA JEC BEKASI",
+        "true_answer": "JAKARTA EYE CENTER (JEC) Bekasi",
+        "sbert_pred": "JAKARTA EYE CENTER (JEC) Bekasi",
+        "cosine_pred": "JAKARTA EYE CENTER (JEC)",
+        "fuzzy_pred": "JAKARTA EYE CENTER (JEC)",
+        "char_similarity_query_vs_answer": 33.9
+      },
+      {
+        "query": "SENTRA MEDIKA HOSPITAL MINAHASA UTARA",
+        "true_answer": "RS SENTRA MEDIKA INTERNASIONAL MINAHASA",
+        "sbert_pred": "RS SENTRA MEDIKA INTERNASIONAL MINAHASA",
+        "cosine_pred": "SENTRA MEDIKA HOSPITAL",
+        "fuzzy_pred": "SENTRA MEDIKA HOSPITAL",
+        "char_similarity_query_vs_answer": 71.1
+      },
+      {
+        "query": "CHANG KENG WEE",
+        "true_answer": "CHANG KENG WEE ASSOCIATES SDN BHD MALAYSIA",
+        "sbert_pred": "CHANG KENG WEE ASSOCIATES SDN BHD MALAYSIA",
+        "cosine_pred": "GLENEAGLES HOSPITAL KUALA LUMPUR",
+        "fuzzy_pred": "GLENEAGLES HOSPITAL KUALA LUMPUR",
+        "char_similarity_query_vs_answer": 50.0
+      }
+    ]
+  }
+}
