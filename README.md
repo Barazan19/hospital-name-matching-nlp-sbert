@@ -88,9 +88,10 @@ src/
   baseline_matcher.py  TF-IDF cosine + fuzzy scorers
   sbert_matcher.py     SBERT nearest-neighbor scorer
   finetune_sbert.py    domain fine-tuning of SBERT on this project's data
-  ensemble_matcher.py  calibrated reranker over all three scorers
+  ensemble_matcher.py  calibrated reranker over all four scorers (eval/research)
   evaluate.py          end-to-end accuracy report (baselines vs ensemble)
   ablation_sbert.py    with-vs-without-SBERT + SBERT's unique semantic wins
+  pipeline.py          PRODUCTION cascade: cheap stages first, SBERT lazily
 models/         fine-tuned SBERT weights (generated locally, gitignored)
 results/        evaluate.py / ablation output: per-row predictions + JSON metrics
 docs/
@@ -114,6 +115,41 @@ python src/ablation_sbert.py
 
 cat results/metrics_summary.json results/ablation_sbert.json
 ```
+
+## Production use (CPU / office-laptop friendly)
+
+[`src/pipeline.py`](src/pipeline.py) is a **staged cascade** built for
+deployment without a GPU. Each row exits at the first stage confident
+enough to answer, so the cheap stages handle the bulk and the expensive
+SBERT stage only runs on the small low-confidence residual — and SBERT is
+**loaded lazily**, so if every row resolves earlier the model is never
+even loaded:
+
+```
+0. noise gate  -> claim-note garbage (no hospital keyword) => NEEDS_REVIEW
+1. exact match -> normalized text already a known name      => instant, conf 1.0
+2. lexical     -> char-ngram + word cosine + fuzzy (calibrated)  [CPU workhorse]
+3. sbert       -> only the low-confidence residual (semantic cases)
+4. review      -> still unsure => human queue
+```
+
+```python
+from pipeline import HospitalMatcher
+
+m = HospitalMatcher.load_or_build()   # build once (~90s), then loads in <1s
+m.predict_one("RSSTELISABETH SEMARANG")
+# {'prediction': 'RS ST ELISABETH SEMARANG', 'confidence': 1.0,
+#  'stage': 'exact', 'needs_review': False, ...}
+
+m.predict_batch(["APOTIK ASEAN JAYA", "HOSPITAL PAKAR DAMANSARA KL"])  # -> DataFrame
+```
+
+Tunables: `lexical_threshold`, `sbert_threshold` (raise for higher
+auto-accuracy + more human review), `noise_min_words`. The fitted lexical
+state and the corpus SBERT embeddings are cached to `models/`
+(gitignored) so day-to-day startup is sub-second. Per-row output includes
+the chosen `stage`, calibrated `confidence`, and a `needs_review` flag for
+routing.
 
 ## Original notebooks (kept for reference — accuracy figures are leaked, see warning above)
 

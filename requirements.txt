@@ -1,6 +1,7 @@
 pandas
 numpy
 scikit-learn
+joblib
 rapidfuzz
 sentence-transformers>=3.0
 torch
