@@ -62,6 +62,7 @@ class HospitalMatcher:
         noise_min_words=12,
         calibration_sample=2000,
         random_state=42,
+        use_sbert=True,
     ):
         self.corpus_texts = list(corpus_texts)
         self.corpus_labels = list(corpus_labels)
@@ -70,6 +71,9 @@ class HospitalMatcher:
         self.lexical_threshold = lexical_threshold
         self.sbert_threshold = sbert_threshold
         self.noise_min_words = noise_min_words
+        # use_sbert=False runs a pure-lexical pipeline (stages 0-2): no SBERT
+        # weights needed at all, low-confidence rows go straight to review.
+        self.use_sbert = use_sbert
 
         self.exact = {}
         for t, l in zip(self.corpus_texts, self.corpus_labels):
@@ -104,13 +108,19 @@ class HospitalMatcher:
         return cls(data["clean"].tolist(), data["true"].tolist(), **kwargs)
 
     @classmethod
-    def load_or_build(cls, artifact=DEFAULT_ARTIFACT, **kwargs):
+    def load_or_build(cls, artifact=DEFAULT_ARTIFACT, use_sbert=None, **kwargs):
         """Production entrypoint: load the pre-fit lexical artifact in
         seconds if it exists, otherwise build once (~minutes) and save it.
-        SBERT is still loaded lazily on first escalation."""
+        SBERT is still loaded lazily on first escalation. Pass
+        use_sbert=False to run a pure-lexical pipeline with no SBERT weights."""
         artifact = Path(artifact)
         if artifact.exists():
-            return cls.load(artifact)
+            obj = cls.load(artifact)
+            if use_sbert is not None:
+                obj.use_sbert = use_sbert
+            return obj
+        if use_sbert is not None:
+            kwargs["use_sbert"] = use_sbert
         obj = cls.from_training_csvs(**kwargs)
         obj.save(artifact)
         return obj
@@ -133,6 +143,7 @@ class HospitalMatcher:
                 "lexical_threshold": self.lexical_threshold,
                 "sbert_threshold": self.sbert_threshold,
                 "noise_min_words": self.noise_min_words,
+                "use_sbert": self.use_sbert,
             },
         }, artifact)
         return artifact
@@ -153,6 +164,7 @@ class HospitalMatcher:
         obj.lexical_threshold = cfg["lexical_threshold"]
         obj.sbert_threshold = cfg["sbert_threshold"]
         obj.noise_min_words = cfg["noise_min_words"]
+        obj.use_sbert = cfg.get("use_sbert", True)
         obj._sbert = None
         return obj
 
@@ -258,7 +270,14 @@ class HospitalMatcher:
                 residual.append((k, gi, best, prob, pred))
 
         if residual:
-            self._resolve_sbert(names, cleaned, residual, out)
+            if self.use_sbert:
+                self._resolve_sbert(names, cleaned, residual, out)
+            else:
+                # pure-lexical mode: keep best lexical guess but flag for review
+                for (_, gi, lex_best, lex_prob, lex_pred) in residual:
+                    out[gi] = self._row(
+                        names[gi], cleaned[gi], REVIEW, float(lex_prob), lex_best, True, suggestion=lex_pred
+                    )
 
     def _resolve_sbert(self, names, cleaned, residual, out):
         self._ensure_sbert()
