@@ -133,16 +133,24 @@ even loaded:
 4. review      -> still unsure => human queue
 ```
 
+```bash
+# quickest start (no SBERT weights needed):
+python run_demo.py --no-sbert "RS ELISABET SEMARNG" "GYNAE ONCO PARTNERS"
+```
+
 ```python
 from pipeline import HospitalMatcher
 
-m = HospitalMatcher.load_or_build()   # build once (~90s), then loads in <1s
+m = HospitalMatcher.load_or_build(use_sbert=False)  # lexical only; drop the flag to add SBERT
 m.predict_one("RSSTELISABETH SEMARANG")
 # {'prediction': 'RS ST ELISABETH SEMARANG', 'confidence': 1.0,
 #  'stage': 'exact', 'needs_review': False, ...}
 
 m.predict_batch(["APOTIK ASEAN JAYA", "HOSPITAL PAKAR DAMANSARA KL"])  # -> DataFrame
 ```
+
+**Full step-by-step deployment guide (office laptop, CPU):
+[`docs/OFFICE_LAPTOP_GUIDE.md`](docs/OFFICE_LAPTOP_GUIDE.md).**
 
 Tunables: `lexical_threshold`, `sbert_threshold` (raise for higher
 auto-accuracy + more human review), `noise_min_words`. The fitted lexical
