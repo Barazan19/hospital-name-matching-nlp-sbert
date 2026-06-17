@@ -22,8 +22,15 @@ class CosineMatcher:
     names collapses accuracy.
     """
 
-    def __init__(self, ngram_range=(1, 2)):
-        self.vectorizer = TfidfVectorizer(ngram_range=ngram_range, sublinear_tf=True)
+    def __init__(self, ngram_range=(1, 2), analyzer="word"):
+        # analyzer="char_wb" with a 3-5 char ngram range catches typos,
+        # misspellings and abbreviation variants (KUTOARJO/KUTUARJO,
+        # APOTIK/APOTEK, NORTHERN/NORTHEN) that word-level TF-IDF treats as
+        # entirely unrelated tokens -- a standard, retraining-free lever for
+        # entity matching.
+        self.vectorizer = TfidfVectorizer(
+            ngram_range=ngram_range, sublinear_tf=True, analyzer=analyzer
+        )
 
     def fit(self, corpus_texts, corpus_labels=None):
         self.corpus_texts = list(corpus_texts)

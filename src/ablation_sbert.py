@@ -89,8 +89,9 @@ def main():
                 chosen_conf.append(probs[best][i])
             return np.asarray(chosen_pred), np.asarray(chosen_conf)
 
-        full_pred, full_conf = ensemble_pick(["cosine", "fuzzy", "sbert"])
-        nosb_pred, nosb_conf = ensemble_pick(["cosine", "fuzzy"])
+        lexical = [m for m in ("cosine", "char", "fuzzy") if m in preds]
+        full_pred, full_conf = ensemble_pick(lexical + ["sbert"])
+        nosb_pred, nosb_conf = ensemble_pick(lexical)
 
         def acc_at(pred, conf, t):
             mask = conf >= t
@@ -124,9 +125,7 @@ def main():
 
         report[label] = {
             "standalone_accuracy": {
-                "cosine_only": round(accuracy_score(true_t, preds["cosine"]), 4),
-                "fuzzy_only": round(accuracy_score(true_t, preds["fuzzy"]), 4),
-                "sbert_only": round(accuracy_score(true_t, preds["sbert"]), 4),
+                m: round(accuracy_score(true_t, preds[m]), 4) for m in preds
             },
             "ensemble_with_sbert": [acc_at(full_pred, full_conf, t) for t in (0.5, 0.6, 0.7)],
             "ensemble_without_sbert": [acc_at(nosb_pred, nosb_conf, t) for t in (0.5, 0.6, 0.7)],

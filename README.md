@@ -14,9 +14,11 @@ ensemble.
 > [`docs/accuracy_analysis.md` §1](docs/accuracy_analysis.md#1-the-leakage-bug-in-the-original-notebooks)
 > for the line-by-line proof. This repo replaces that pipeline with a
 > leak-free one: a domain-fine-tuned multilingual SBERT plus a calibrated
-> reranking ensemble. Honest, leak-free accuracy is **63-67%** on the
-> resolved subset (vs. ~50% for cosine/fuzzy alone), with a tunable
-> confidence threshold that trades coverage for higher accuracy — see
+> reranking ensemble. Honest, leak-free accuracy is **64-77%** on the
+> resolved subset (vs. ~48-54% for any single lexical method), with a
+> tunable confidence threshold that trades coverage for higher accuracy,
+> and a measured hard ceiling of 70-85% (some answers aren't reachable at
+> all) — see
 > [`docs/accuracy_analysis.md`](docs/accuracy_analysis.md) for the full
 > numbers and [`results/metrics_summary.json`](results/metrics_summary.json)
 > for the raw output (run [§ Reproduce](#reproduce) to regenerate it).
@@ -26,15 +28,21 @@ ensemble.
 - **Fine-tuned a multilingual SBERT bi-encoder** (`paraphrase-multilingual-MiniLM-L12-v2`)
   with contrastive learning (`MultipleNegativesRankingLoss`) on ~47k
   domain (messy → canonical) hospital-name pairs — [`src/finetune_sbert.py`](src/finetune_sbert.py).
-- **Built a calibrated reranking ensemble** over TF-IDF cosine, fuzzy and
-  SBERT, with per-method logistic-regression confidence calibration and
-  confidence-based routing to a human-review queue — [`src/ensemble_matcher.py`](src/ensemble_matcher.py).
+- **Built a calibrated reranking ensemble** over four matchers (word
+  TF-IDF cosine, char-ngram cosine, fuzzy, SBERT) with per-method
+  logistic-regression confidence calibration and confidence-based routing
+  to a human-review queue — [`src/ensemble_matcher.py`](src/ensemble_matcher.py).
 - **Found and fixed test-set leakage** in the original notebooks that had
   inflated reported accuracy from a real ~50% baseline to a misleading
   ~89% — see [`docs/accuracy_analysis.md` §1](docs/accuracy_analysis.md#1-the-leakage-bug-in-the-original-notebooks).
+- **Measured the hard retrieval ceiling** (70% / 85% — the share of test
+  rows whose correct answer is even reachable in the corpus) to separate
+  model headroom from irreducible data limits, then closed the winnable
+  gap with a **char-ngram matcher** targeting the typo/abbreviation error
+  bucket — [`docs/accuracy_analysis.md` §3](docs/accuracy_analysis.md#3-the-hard-ceiling-whats-the-maximum-any-matcher-could-score).
 - **Ran a with-vs-without-SBERT ablation** to measure, rather than assume,
-  deep learning's contribution: SBERT is the strongest *standalone*
-  matcher and uniquely recovers semantically-hard cases (cross-lingual
+  deep learning's contribution: SBERT is among the strongest *standalone*
+  matchers and uniquely recovers semantically-hard cases (cross-lingual
   synonyms, abbreviation expansion, names buried in free-text notes),
   while classical methods + calibration are competitive on headline
   accuracy for this lexical-error-dominated dataset — [`docs/accuracy_analysis.md` §5](docs/accuracy_analysis.md#5-does-sbert-actually-help-ablation).
@@ -45,15 +53,18 @@ ensemble.
 flowchart TB
     IN["Raw hospital name\n(from claims data)"] --> CLEAN["Normalize\n(src/preprocessing.py)\nuppercase, strip punctuation,\nstrip claim-system noise/dates"]
 
-    CLEAN --> COS["TF-IDF Cosine\n(src/baseline_matcher.py)"]
+    CLEAN --> COS["TF-IDF Cosine (word)\n(src/baseline_matcher.py)"]
+    CLEAN --> CH["TF-IDF Cosine (char 3-5 ngram)\ntypo / abbreviation robust"]
     CLEAN --> FUZ["Fuzzy token-sort ratio\n(rapidfuzz)"]
     CLEAN --> SB["Fine-tuned SBERT\n(src/sbert_matcher.py)\nsee docs/architecture.md"]
 
     REF["Corpus: messy training examples\n+ their canonical labels\n(NOT a deduped canonical list --\nsee docs/accuracy_analysis.md §2)"] --> COS
+    REF --> CH
     REF --> FUZ
     REF --> SB
 
     COS --> RR["Reranker\n(src/ensemble_matcher.py)\nper-method calibrated\nP(candidate is correct)"]
+    CH --> RR
     FUZ --> RR
     SB --> RR
 

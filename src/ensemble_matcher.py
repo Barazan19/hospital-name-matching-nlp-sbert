@@ -29,6 +29,7 @@ NEEDS_REVIEW = "NEEDS_REVIEW"
 class EnsembleMatcher:
     def __init__(self, sbert_model_path, review_threshold=0.5):
         self.cosine_matcher = CosineMatcher()
+        self.char_matcher = CosineMatcher(ngram_range=(3, 5), analyzer="char_wb")
         self.sbert_matcher = SBERTMatcher(sbert_model_path)
         self.review_threshold = review_threshold
         self.rerankers = {}  # method_name -> fitted LogisticRegression
@@ -39,11 +40,13 @@ class EnsembleMatcher:
         list) is what gives TF-IDF/fuzzy/SBERT enough surface-form coverage to
         work -- see docs/accuracy_analysis.md."""
         self.cosine_matcher.fit(corpus_texts, corpus_labels)
+        self.char_matcher.fit(corpus_texts, corpus_labels)
         self.sbert_matcher.fit(corpus_texts, corpus_labels)
         return self
 
     def _raw_candidates(self, queries, exclude_indices=None):
         cosine_preds, cosine_scores = self.cosine_matcher.predict(queries, exclude_indices=exclude_indices)
+        char_preds, char_scores = self.char_matcher.predict(queries, exclude_indices=exclude_indices)
         fuzzy_preds, fuzzy_scores = fuzzy_predict(
             queries, self.cosine_matcher.corpus_texts, self.cosine_matcher.corpus_labels,
             exclude_indices=exclude_indices,
@@ -51,6 +54,7 @@ class EnsembleMatcher:
         sbert_preds, sbert_scores = self.sbert_matcher.predict(queries, exclude_indices=exclude_indices)
         return {
             "cosine": (cosine_preds, cosine_scores),
+            "char": (char_preds, char_scores),
             "fuzzy": (fuzzy_preds, fuzzy_scores),
             "sbert": (sbert_preds, sbert_scores),
         }
@@ -104,6 +108,8 @@ class EnsembleMatcher:
             "query": list(queries),
             "cosine_pred": candidates["cosine"][0],
             "cosine_score": candidates["cosine"][1],
+            "char_pred": candidates["char"][0],
+            "char_score": candidates["char"][1],
             "fuzzy_pred": candidates["fuzzy"][0],
             "fuzzy_score": candidates["fuzzy"][1],
             "sbert_pred": candidates["sbert"][0],
